@@ -1,6 +1,6 @@
 
 import { remote } from 'electron'; // native electron module
-import { dirMonitor } from './dirMonitor';
+import { dirMonitors } from './dirMonitors';
 
 window.$ = window.jQuery = require('jquery');
 
@@ -18,17 +18,29 @@ export var dirMonitorMain = new function () {
         $('.container').on('click', '.btnClick', function () {
             var $btn = $(this);
             var what = $btn.data('what');
-            if (what == 'start') { // START
+            if ( what == 'start' ) { // START
                 // Display File Browser Dialog, wait for the user to select one directory, continue after
                 var dirPath = thisClass.openBrowseDialog_ReturnPathOrFalse();
                 if ( dirPath ) {
-                    dirMonitor.setDir( dirPath );
-                    dirMonitor.start();
+
+                    var dirMonitor2 = dirMonitors.createMonitor();
+                    dirMonitor2.setDir( dirPath );
+                    dirMonitor2.start();
+
+                    var uid = dirMonitor2.getUID();
+                    $btn.data('what', 'stop');
+                    $btn.data('uid', uid);
+                    $btn.text('Stop');
                 } else {
                     console.info('no dir selected');
                 }
             } else {
                 // STOP
+                var uid = $btn.data('uid');
+                dirMonitors.stopMonitor(uid);
+                $btn.data('what', 'start');
+                $btn.data('uid', '');
+                $btn.text('Start');
             }
         });
     });

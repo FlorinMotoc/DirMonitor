@@ -2,8 +2,8 @@
 var chokidar = require('chokidar');
 
 
-export var dirMonitor = new function () {
-    var thisClass = this;
+export var dirMonitor = function () {
+    var self = this;
 
     // Vars
 
@@ -32,9 +32,9 @@ export var dirMonitor = new function () {
         });
 
         this.watcherStart(function() {
-            thisClass.WatchDirs();
-            thisClass.WatchFiles();
-            thisClass.WatchMore();
+            self.WatchDirs();
+            self.WatchFiles();
+            self.WatchMore();
         });
 
     }
@@ -87,8 +87,15 @@ export var dirMonitor = new function () {
 
     this.stopWatching = function () {
         // Stop watching.
+        console.info('STOP watching dir: ' + this.watchedDirectory);
         this.watcher.close();
     }
 
+    this.getUID = function () {
+        if ( ! this.uid ) {
+            this.uid = Math.random().toString(36).substring(2);
+        }
+        return this.uid;
+    }
 
 }
