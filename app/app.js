@@ -22,3 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('platform-info').innerHTML = os.platform();
     document.getElementById('env-name').innerHTML = env.name;
 });
+
+
+import { dirMonitorMain } from './dirMonitor/main';
+dirMonitorMain.start();
