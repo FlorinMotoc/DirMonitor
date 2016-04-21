@@ -103,6 +103,7 @@ export var dirMonitor = function () {
     this.getUID = function () {
         if ( ! this.uid ) {
             this.uid = Math.random().toString(36).substring(2);
+            mlog.setUID(this.uid);
         }
         return this.uid;
     }

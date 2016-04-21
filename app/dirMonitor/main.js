@@ -2,7 +2,6 @@
 import { remote } from 'electron'; // native electron module
 import { dirMonitors } from './dirMonitors';
 
-window.$ = window.jQuery = require('jquery');
 
 var dialog = remote.dialog;
 
@@ -14,33 +13,47 @@ export var dirMonitorMain = new function () {
     }
 
     $(function() {
+        $('.addNewTab').on('click', function() {
+            var numberOfTabs = $('#upTabs li').length;
+            var $content = $('.template .monitor').clone();
+            tabs.addBSTab("monitorTab"+numberOfTabs, "Tab title", $content);
+        });
+    });
+
+    $(function() {
         // On Button Click, show the Chose Directory Dialog
-        $('.container').on('click', '.btnClick', function () {
+        $('.monitors').on('click', '.btnClick', function () {
             var $btn = $(this);
-            var what = $btn.data('what');
+            var $monitor = $btn.parents('.monitor:first');
+            var what = $monitor.data('what');
             if ( what == 'start' ) { // START
                 // Display File Browser Dialog, wait for the user to select one directory, continue after
                 var dirPath = thisClass.openBrowseDialog_ReturnPathOrFalse();
-                if ( dirPath ) {
+                if ( dirPath ) { // a dir was selected
 
+                    // create a new monitor for this dir
                     var dirMonitor2 = dirMonitors.createMonitor();
                     dirMonitor2.setDir( dirPath );
                     dirMonitor2.start();
 
+                    // get this monitor's UID
                     var uid = dirMonitor2.getUID();
-                    $btn.data('what', 'stop');
-                    $btn.data('uid', uid);
-                    $btn.text('Stop');
+                    // set the this instance's button text to Stop, and also additional infos like UID
+                    $btn.text("Click to Stop this directory's monitoring");
+                    $monitor.data('what', 'stop').attr('data-what', 'stop');
+                    $monitor.data('uid', uid).attr('data-uid', uid);
                 } else {
                     console.info('no dir selected');
                 }
             } else {
                 // STOP
-                var uid = $btn.data('uid');
+                // Get this monitor's UID and stop monitoring instance
+                var uid = $monitor.data('uid');
                 dirMonitors.stopMonitor(uid);
-                $btn.data('what', 'start');
-                $btn.data('uid', '');
-                $btn.text('Start');
+                // Set this html instance to default / stopped state
+                $monitor.data('what', 'start').attr('data-what', 'start');
+                $monitor.data('uid', '').attr('data-uid', '');
+                $btn.text('Click and Chose a Directory to Monitor');
             }
         });
     });
