@@ -7,7 +7,7 @@ var dialog = remote.dialog;
 
 
 export var dirMonitorMain = new function () {
-    var thisClass = this;
+    var self = this;
 
     this.start = function () {
     }
@@ -23,44 +23,61 @@ export var dirMonitorMain = new function () {
     $(function() {
         // On Button Click, show the Chose Directory Dialog
         $('.monitors').on('click', '.btnClick', function () {
-            var $btn = $(this);
-            var $monitor = $btn.parents('.monitor:first');
-            var what = $monitor.data('what');
-            if ( what == 'start' ) { // START
-                // Display File Browser Dialog, wait for the user to select one directory, continue after
-                var dirPath = thisClass.openBrowseDialog_ReturnPathOrFalse();
-                if ( dirPath ) { // a dir was selected
+            self.$btn = $(this);
+            self.$monitor = self.$btn.parents('.monitor:first');
+            var what = self.$monitor.data('what');
+            var whatBtn = self.$btn.data('what');
 
-                    // create a new monitor for this dir
-                    var dirMonitor2 = dirMonitors.createMonitor();
-                    dirMonitor2.setDir( dirPath );
-                    dirMonitor2.start();
-
-                    // get this monitor's UID
-                    var uid = dirMonitor2.getUID();
-                    // set the this instance's button text to Stop, and also additional infos like UID
-                    $btn.text("Click to Stop this directory's monitoring");
-                    $monitor.data('what', 'stop').attr('data-what', 'stop');
-                    $monitor.data('uid', uid).attr('data-uid', uid);
-                } else {
-                    console.info('no dir selected');
-                }
-            } else {
-                // STOP
-                // Get this monitor's UID and stop monitoring instance
-                var uid = $monitor.data('uid');
-                dirMonitors.stopMonitor(uid);
-                // Set this html instance to default / stopped state
-                $monitor.data('what', 'start').attr('data-what', 'start');
-                $monitor.data('uid', '').attr('data-uid', '');
-                $btn.text('Click and Chose a Directory to Monitor');
+            if ( ! whatBtn ) { // Main btn pressed
+                if ( what == 'start' ) { self.Click_Monitor_Start(); } // START
+                if ( what == 'stop' ) { self.Click_Monitor_Stop(); } // STOP
+            } else { // Secondary btn pressed
+                if ( whatBtn == 'clear' ) { self.Click_Monitor_Clear(); } // CLEAR
             }
+
         });
     });
 
     this.openBrowseDialog_ReturnPathOrFalse = function () {
         var dirChoser = dialog.showOpenDialog({ properties: [ 'openDirectory' ]});
         return ( dirChoser && dirChoser[0] ) ? dirChoser[0] : false ;
+    }
+
+    this.Click_Monitor_Start = function () {
+        // Display File Browser Dialog, wait for the user to select one directory, continue after
+        var dirPath = this.openBrowseDialog_ReturnPathOrFalse();
+        if ( ! dirPath ) {
+            console.info('no dir selected');
+        } else { // a dir was selected
+            // create a new monitor for this dir
+            var dirMonitor2 = dirMonitors.createMonitor();
+            dirMonitor2.setDir( dirPath );
+            dirMonitor2.start();
+
+            // get this monitor's UID
+            var uid = dirMonitor2.getUID();
+            // set the this instance's button text to Stop, and also additional infos like UID
+            this.$btn.text("Click to Stop this directory's monitoring");
+            this.$monitor.data('what', 'stop').attr('data-what', 'stop');
+            this.$monitor.data('uid', uid).attr('data-uid', uid);
+
+            this.Click_Monitor_Clear(); // Remove all TRs from the Table
+        }
+    }
+    this.Click_Monitor_Stop = function () {
+        // Get this monitor's UID and stop monitoring instance
+        var uid = this.$monitor.data('uid');
+        dirMonitors.stopMonitor(uid);
+        // Set this html instance to default / stopped state
+        this.$monitor.data('what', 'start').attr('data-what', 'start');
+        this.$monitor.data('uid', '').attr('data-uid', '');
+        this.$btn.text('Click and Chose a Directory to Monitor');
+
+        this.Click_Monitor_Clear(); // Remove all TRs from the Table
+    }
+    this.Click_Monitor_Clear = function () {
+        // Remove all TRs from the Table
+        this.$monitor.find('.tableHere').html('');
     }
 
 }
