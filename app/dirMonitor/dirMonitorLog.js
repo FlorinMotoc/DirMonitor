@@ -1,4 +1,6 @@
 
+import {dirMonitorMain, fileConflicts} from "./main";
+
 export var dirMonitorLog = function () {
     var self = this;
 
@@ -33,6 +35,12 @@ export var dirMonitorLog = function () {
             // '<td>stats</td>' +
         '</tr>'
         );
+
+        // Check for File Conflicts
+        if (type == 'file') {
+            fileConflicts.checkIfConflict( this.watchedDirectory, path, action );
+        }
+
     }
 
 }

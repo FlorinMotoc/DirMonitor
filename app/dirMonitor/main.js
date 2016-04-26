@@ -81,3 +81,21 @@ export var dirMonitorMain = new function () {
     }
 
 }
+
+export var fileConflicts = new function() {
+    var self = this;
+
+
+    this.checkIfConflict = function ( dir, path, action ) {
+        var path1 = path.replace( dir + '/', '' );
+
+        //TODO: if path1 contains the word "conflicted" then ... do something ...
+        if ( path1.search('conflicted') != -1 ) {
+            this.conflictedFileFound( path1 );
+        }
+    }
+    
+    this.conflictedFileFound = function (path1) {
+        console.info('CONFLICTED FILE FOUND :: ' + path1);
+    }
+}
