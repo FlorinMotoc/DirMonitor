@@ -8,8 +8,9 @@ export var dirMonitor = function () {
     // Vars
 
     this.watchedDirectory;
-    // this.regexIgnored = /\\/; // default is :: /[\/\\]\./
-    this.regexIgnored = /[\/\\]\./;
+    // this.regexIgnored = /\\/; // default is :: /[\/\\]\./ // don't work
+    // this.regexIgnored = /[\/\\]\./; // ignore .dotfiles and .dotdirectories
+    this.regexIgnored = /\*/; // ingore all that contains a `*` in it
     this.watcher; // chokidar instance
 
     // Something to use when events are received.
@@ -30,7 +31,7 @@ export var dirMonitor = function () {
     this.start = function () {
         // Initialize watcher.
         this.watcher = chokidar.watch(this.watchedDirectory, {
-            ignored: this.regexIgnored,
+            // ignored: this.regexIgnored, // if you comment it, it will not ignore anything
             persistent: true
         });
 
