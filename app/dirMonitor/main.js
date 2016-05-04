@@ -86,8 +86,9 @@ export var fileConflicts = function() {
     var self = this;
     
     // Vars
-    // this.conflictString = ' conflicted copy ';
-    this.conflictString = 'conflicted';
+    // this.conflictString = 'conflicted';
+    this.conflictString = ' conflicted copy 2016-';
+    this.replaceRegexString = /\s*\(.*?\)\s*/g;
     this.watchedDirectory;
     this.conflicts = [];
 
@@ -104,18 +105,31 @@ export var fileConflicts = function() {
         // if path1 contains the word "conflicted" AND if is new, ... then ... do something ...
         if ( action == 'add' && path1.search( this.conflictString ) != -1 ) {
             // conflicted new file found, put it in queue, and wait for next file change of this file
-            this.conflicts.push(path1);
+            // this.conflicts.push(path1);
             console.info('CONFLICTED FILE FOUND :: ' + path1 + ' :: in dir :: ' + this.watchedDirectory + ' :: ADD TO ARRAY');
-            console.info(this.conflicts);
+            // console.info(this.conflicts);
+
+
+            // extract the real (old) name of file, before conflict (removes all in parantheses: () )
+            var path1ConflictedCopyGoodString = path1.replace( this.replaceRegexString , '');
+
+            console.info('rename file :: ' + this.watchedDirectory + '/' + path1 + ' to :: ' + this.watchedDirectory + '/' + path1ConflictedCopyGoodString);
+            fs.rename( this.watchedDirectory + '/' + path1 , this.watchedDirectory + '/' + path1ConflictedCopyGoodString, function(err) {
+                if ( err ) return console.info('ERROR ON RENAME: ' + err);
+                console.info('file renamed successfully');
+            });
+
+
         }
 
         // search in this.conflicts
-        if ( action == 'change' ) {
+        /*
+        if ( action == 'change1' ) {
             // do a foreach of all found conflicts
             this.conflicts.forEach(function(path1ConflictedCopy) {
                 // extract the real (old) name of file, before conflict (removes all in parantheses: () )
                 // var path1ConflictedCopy = "workspace (dasdsa) (Florin-Motoc-iMac.local's conflicted copy 2016-04-15).xml";
-                var path1ConflictedCopyGoodString = path1ConflictedCopy.replace(/\s*\(.*?\)\s*/g, '');
+                var path1ConflictedCopyGoodString = path1ConflictedCopy.replace( this.replaceRegexString , '');
                 console.info('each: ', path1ConflictedCopy, path1ConflictedCopyGoodString, path1);
                 // if this change is for the same file as this conflicted file, process the logic (remove and rename)
                 if ( path1 == path1ConflictedCopyGoodString ) {
@@ -144,6 +158,7 @@ export var fileConflicts = function() {
             });
 
         }
+        */
 
     }
 }
