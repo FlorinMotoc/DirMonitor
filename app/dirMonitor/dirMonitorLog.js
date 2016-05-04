@@ -8,11 +8,13 @@ export var dirMonitorLog = function () {
 
     this.watchedDirectory;
     this.UID;
+    var fileConflicts1 = new fileConflicts();
 
     // Methods
 
     this.setDir = function (dir) {
         this.watchedDirectory = dir;
+        fileConflicts1.setDir(dir);
     }
     this.setUID = function (uid) {
         this.UID = uid;
@@ -38,7 +40,7 @@ export var dirMonitorLog = function () {
 
         // Check for File Conflicts
         if (type == 'file') {
-            fileConflicts.checkIfConflict( this.watchedDirectory, path, action );
+            fileConflicts1.checkIfConflict( path, action );
         }
 
     }

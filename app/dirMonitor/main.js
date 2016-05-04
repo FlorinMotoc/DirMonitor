@@ -1,7 +1,7 @@
 
 import { remote } from 'electron'; // native electron module
 import { dirMonitors } from './dirMonitors';
-
+var fs = require('fs');
 
 var dialog = remote.dialog;
 
@@ -16,7 +16,7 @@ export var dirMonitorMain = new function () {
         $('.addNewTab').on('click', function() {
             var numberOfTabs = $('#upTabs li').length;
             var $content = $('.template .monitor').clone();
-            tabs.addBSTab("monitorTab"+numberOfTabs, "Tab title", $content);
+            tabs.addBSTab("monitorTab"+numberOfTabs, "Monitor #" + numberOfTabs, $content);
         });
     });
 
@@ -82,20 +82,68 @@ export var dirMonitorMain = new function () {
 
 }
 
-export var fileConflicts = new function() {
+export var fileConflicts = function() {
     var self = this;
+    
+    // Vars
+    // this.conflictString = ' conflicted copy ';
+    this.conflictString = 'conflicted';
+    this.watchedDirectory;
+    this.conflicts = [];
 
+    // Methods
 
-    this.checkIfConflict = function ( dir, path, action ) {
-        var path1 = path.replace( dir + '/', '' );
-
-        //TODO: if path1 contains the word "conflicted" then ... do something ...
-        if ( path1.search('conflicted') != -1 ) {
-            this.conflictedFileFound( path1 );
-        }
+    this.setDir = function (dir) {
+        this.watchedDirectory = dir;
     }
     
-    this.conflictedFileFound = function (path1) {
-        console.info('CONFLICTED FILE FOUND :: ' + path1);
+    this.checkIfConflict = function ( path, action ) {
+        var path1 = path.replace( this.watchedDirectory + '/', '' );
+
+
+        // if path1 contains the word "conflicted" AND if is new, ... then ... do something ...
+        if ( action == 'add' && path1.search( this.conflictString ) != -1 ) {
+            // conflicted new file found, put it in queue, and wait for next file change of this file
+            this.conflicts.push(path1);
+            console.info('CONFLICTED FILE FOUND :: ' + path1 + ' :: in dir :: ' + this.watchedDirectory + ' :: ADD TO ARRAY');
+            console.info(this.conflicts);
+        }
+
+        // search in this.conflicts
+        if ( action == 'change' ) {
+            // do a foreach of all found conflicts
+            this.conflicts.forEach(function(path1ConflictedCopy) {
+                // extract the real (old) name of file, before conflict (removes all in parantheses: () )
+                // var path1ConflictedCopy = "workspace (dasdsa) (Florin-Motoc-iMac.local's conflicted copy 2016-04-15).xml";
+                var path1ConflictedCopyGoodString = path1ConflictedCopy.replace(/\s*\(.*?\)\s*/g, '');
+                console.info('each: ', path1ConflictedCopy, path1ConflictedCopyGoodString, path1);
+                // if this change is for the same file as this conflicted file, process the logic (remove and rename)
+                if ( path1 == path1ConflictedCopyGoodString ) {
+                    // this is is
+                    //todo: remove the old file (path1) and rename the new file (path1ConflictedCopy) to old file name (path1)
+
+                    //todo: remove the old file (path1)
+                    // console.info('remove file :: ' + self.watchedDirectory + '/' + path1);
+                    // fs.unlink( self.watchedDirectory + '/' + path1 , function(err) {
+                    //     if ( err ) return console.info('ERROR ON UNLINK: ' + err);
+                    //     console.info('file deleted successfully');
+                    // });
+
+                    //todo: rename the new file (path1ConflictedCopy) to old file name (path1)
+                    console.info('rename file :: ' + self.watchedDirectory + '/' + path1ConflictedCopy + ' to :: ' + self.watchedDirectory + '/' + path1);
+                    fs.rename( self.watchedDirectory + '/' + path1ConflictedCopy , self.watchedDirectory + '/' + path1, function(err) {
+                        if ( err ) return console.info('ERROR ON RENAME: ' + err);
+                        console.info('file renamed successfully');
+                    });
+
+                    //todo: now remove this conflict to not process it again
+                    delete self.conflicts[ self.conflicts.indexOf(path1ConflictedCopy) ];
+
+
+                }
+            });
+
+        }
+
     }
 }
