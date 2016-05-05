@@ -1,5 +1,5 @@
 
-import {dirMonitorMain, fileConflicts} from "./main";
+import {fileConflicts} from "./main";
 
 export var dirMonitorLog = function () {
     var self = this;
@@ -25,10 +25,10 @@ export var dirMonitorLog = function () {
         // var path1 = path.replace(this.watchedDirectory+'/', '');
         // console.info([ date, path1, type, action, stats ]);
 
-        // var $tbody = $('.monitor.'+this.UID+' .tableHere');
-        // var $tbody = $('.monitor[data-uid="'+this.UID+'"] .tableHere');
+        // var $tbody = $('.monitor.'+this.UID+' .tBodyEvents');
+        // var $tbody = $('.monitor[data-uid="'+this.UID+'"] .tBodyEvents');
 
-        $('.monitor[data-uid="'+this.UID+'"] .tableHere').append(
+        $('.monitor[data-uid="'+this.UID+'"] .tBodyEvents').append(
         '<tr>' +
             '<th scope="row">' + new Date().toLocaleString() + '</th>' +
             '<td>' + type + '</td>' +
@@ -40,9 +40,19 @@ export var dirMonitorLog = function () {
 
         // Check for File Conflicts
         if (type == 'file') {
-            fileConflicts1.checkIfConflict( path, action );
+            fileConflicts1.checkIfConflict( path, action, this );
         }
 
+    }
+    
+    this.writeToLogTable = function (msg) {
+        console.info(msg);
+        $('.monitor[data-uid="'+this.UID+'"] .tBodyLog').append(
+            '<tr>' +
+                '<th scope="row">' + new Date().toLocaleString() + '</th>' +
+                '<td>' + msg + '</td>' +
+            '</tr>'
+        );
     }
 
 }

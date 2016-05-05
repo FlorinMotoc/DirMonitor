@@ -14,8 +14,9 @@ export var dirMonitor = function () {
     this.watcher; // chokidar instance
 
     // Something to use when events are received.
-    this.log = console.log.bind(console);
+    // this.log = console.log.bind(console);
     var mlog = new dirMonitorLog();
+    this.log = mlog.writeToLogTable.bind(mlog);
 
 
     // Functions
@@ -35,7 +36,9 @@ export var dirMonitor = function () {
             persistent: true
         });
 
+        fmad_ajax_indicator('Please wait... scanning files...');
         this.watcherStart(function() {
+            fmad_ajax_indicator('', 1);
             self.WatchDirs();
             self.WatchFiles();
             self.WatchMore();
@@ -58,7 +61,7 @@ export var dirMonitor = function () {
     // Add event listeners.
 
     this.WatchFiles = function () {
-        console.info('watch files in: ' + this.watchedDirectory);
+        this.log('watch files in: ' + this.watchedDirectory);
         this.watcher
             // .on('add', path => this.log(`File ${path} has been added`))
             // .on('change', path => this.log(`File ${path} has been changed`))
@@ -69,7 +72,7 @@ export var dirMonitor = function () {
     }
 
     this.WatchDirs = function () {
-        console.info('watch dirs in: ' + this.watchedDirectory);
+        this.log('watch dirs in: ' + this.watchedDirectory);
         this.watcher
             // .on('addDir', path => this.log(`Directory ${path} has been added`))
             // .on('unlinkDir', path => this.log(`Directory ${path} has been removed`));
@@ -97,7 +100,7 @@ export var dirMonitor = function () {
 
     this.stopWatching = function () {
         // Stop watching.
-        console.info('STOP watching dir: ' + this.watchedDirectory);
+        this.log('STOP watching dir: ' + this.watchedDirectory);
         this.watcher.close();
     }
 

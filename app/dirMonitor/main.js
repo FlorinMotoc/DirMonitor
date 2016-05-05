@@ -20,6 +20,7 @@ export var dirMonitorMain = new function () {
         });
     });
 
+    // On .btnClick Click... creates self.$btn, self.$monitor
     $(function() {
         // On Button Click, show the Chose Directory Dialog
         $('.monitors').on('click', '.btnClick', function () {
@@ -33,6 +34,7 @@ export var dirMonitorMain = new function () {
                 if ( what == 'stop' ) { self.Click_Monitor_Stop(); } // STOP
             } else { // Secondary btn pressed
                 if ( whatBtn == 'clear' ) { self.Click_Monitor_Clear(); } // CLEAR
+                if ( whatBtn == 'clearLogs' ) { self.Click_Monitor_ClearLogs(); } // CLEAR LOGS
             }
 
         });
@@ -49,6 +51,7 @@ export var dirMonitorMain = new function () {
         if ( ! dirPath ) {
             console.info('no dir selected');
         } else { // a dir was selected
+            this.$monitor.find('.selectedDir').html('Monitoring directory: ' + dirPath);
             // create a new monitor for this dir
             var dirMonitor2 = dirMonitors.createMonitor();
             dirMonitor2.setDir( dirPath );
@@ -62,6 +65,7 @@ export var dirMonitorMain = new function () {
             this.$monitor.data('uid', uid).attr('data-uid', uid);
 
             this.Click_Monitor_Clear(); // Remove all TRs from the Table
+            this.Click_Monitor_ClearLogs(); // Remove all TRs from the Logs Table
         }
     }
     this.Click_Monitor_Stop = function () {
@@ -72,12 +76,18 @@ export var dirMonitorMain = new function () {
         this.$monitor.data('what', 'start').attr('data-what', 'start');
         this.$monitor.data('uid', '').attr('data-uid', '');
         this.$btn.text('Click and Chose a Directory to Monitor');
+        this.$monitor.find('.selectedDir').html('DirMonitor stopped. Select another directory and start again?');
 
         this.Click_Monitor_Clear(); // Remove all TRs from the Table
+        this.Click_Monitor_ClearLogs(); // Remove all TRs from the Logs Table
     }
     this.Click_Monitor_Clear = function () {
         // Remove all TRs from the Table
-        this.$monitor.find('.tableHere').html('');
+        this.$monitor.find('.tBodyEvents').html('');
+    }
+    this.Click_Monitor_ClearLogs = function () {
+        // Remove all TRs from the Logs Table
+        this.$monitor.find('.tBodyLog').html('');
     }
 
 }
@@ -98,67 +108,25 @@ export var fileConflicts = function() {
         this.watchedDirectory = dir;
     }
     
-    this.checkIfConflict = function ( path, action ) {
+    this.checkIfConflict = function ( path, action, dirMonitorLogInstance ) {
         var path1 = path.replace( this.watchedDirectory + '/', '' );
-
 
         // if path1 contains the word "conflicted" AND if is new, ... then ... do something ...
         if ( action == 'add' && path1.search( this.conflictString ) != -1 ) {
-            // conflicted new file found, put it in queue, and wait for next file change of this file
-            // this.conflicts.push(path1);
-            console.info('CONFLICTED FILE FOUND :: ' + path1 + ' :: in dir :: ' + this.watchedDirectory + ' :: ADD TO ARRAY');
-            // console.info(this.conflicts);
+            this.log = dirMonitorLogInstance.writeToLogTable.bind(dirMonitorLogInstance);
 
+            // conflicted new file found, put it in queue, and wait for next file change of this file
+            this.log('CONFLICTED FILE FOUND :: ' + path1 + ' :: in dir :: ' + this.watchedDirectory + ' :: ADD TO ARRAY');
 
             // extract the real (old) name of file, before conflict (removes all in parantheses: () )
             var path1ConflictedCopyGoodString = path1.replace( this.replaceRegexString , '');
 
-            console.info('rename file :: ' + this.watchedDirectory + '/' + path1 + ' to :: ' + this.watchedDirectory + '/' + path1ConflictedCopyGoodString);
+            this.log('rename file :: ' + this.watchedDirectory + '/' + path1 + ' to :: ' + this.watchedDirectory + '/' + path1ConflictedCopyGoodString);
             fs.rename( this.watchedDirectory + '/' + path1 , this.watchedDirectory + '/' + path1ConflictedCopyGoodString, function(err) {
-                if ( err ) return console.info('ERROR ON RENAME: ' + err);
-                console.info('file renamed successfully');
-            });
+                if ( err ) return this.log('ERROR ON RENAME: ' + err);
+                this.log('file renamed successfully');
+            }); // end rename
 
-
-        }
-
-        // search in this.conflicts
-        /*
-        if ( action == 'change1' ) {
-            // do a foreach of all found conflicts
-            this.conflicts.forEach(function(path1ConflictedCopy) {
-                // extract the real (old) name of file, before conflict (removes all in parantheses: () )
-                // var path1ConflictedCopy = "workspace (dasdsa) (Florin-Motoc-iMac.local's conflicted copy 2016-04-15).xml";
-                var path1ConflictedCopyGoodString = path1ConflictedCopy.replace( this.replaceRegexString , '');
-                console.info('each: ', path1ConflictedCopy, path1ConflictedCopyGoodString, path1);
-                // if this change is for the same file as this conflicted file, process the logic (remove and rename)
-                if ( path1 == path1ConflictedCopyGoodString ) {
-                    // this is is
-                    //todo: remove the old file (path1) and rename the new file (path1ConflictedCopy) to old file name (path1)
-
-                    //todo: remove the old file (path1)
-                    // console.info('remove file :: ' + self.watchedDirectory + '/' + path1);
-                    // fs.unlink( self.watchedDirectory + '/' + path1 , function(err) {
-                    //     if ( err ) return console.info('ERROR ON UNLINK: ' + err);
-                    //     console.info('file deleted successfully');
-                    // });
-
-                    //todo: rename the new file (path1ConflictedCopy) to old file name (path1)
-                    console.info('rename file :: ' + self.watchedDirectory + '/' + path1ConflictedCopy + ' to :: ' + self.watchedDirectory + '/' + path1);
-                    fs.rename( self.watchedDirectory + '/' + path1ConflictedCopy , self.watchedDirectory + '/' + path1, function(err) {
-                        if ( err ) return console.info('ERROR ON RENAME: ' + err);
-                        console.info('file renamed successfully');
-                    });
-
-                    //todo: now remove this conflict to not process it again
-                    delete self.conflicts[ self.conflicts.indexOf(path1ConflictedCopy) ];
-
-
-                }
-            });
-
-        }
-        */
-
-    }
+        } // end if
+    } // end checkIfConflict()
 }
