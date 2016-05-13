@@ -35,6 +35,10 @@ app.on('ready', function () {
     if (env.name !== 'production') {
         mainWindow.openDevTools();
     }
+
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.setTitle(app.getName() + ' v' + app.getVersion());
+    });
 });
 
 app.on('window-all-closed', function () {

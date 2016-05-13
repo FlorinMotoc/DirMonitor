@@ -33,7 +33,12 @@ export var dirMonitor = function () {
         // Initialize watcher.
         this.watcher = chokidar.watch(this.watchedDirectory, {
             // ignored: this.regexIgnored, // if you comment it, it will not ignore anything
-            persistent: true
+            persistent: true, // it works with this, I think is needed
+
+            // usePolling: true, // if false, it gives EMFILE errors
+            // ignoreInitial: true,
+            // useFsEvents: true,
+            // alwaysStat: false
         });
 
         fmad_ajax_indicator('Please wait... scanning files...');
@@ -48,7 +53,11 @@ export var dirMonitor = function () {
 
     this.watcherStart = function (onReady) {
         this.watcher
-            .on('error', error => this.log(`Watcher error: ${error}`))
+            // .on('error', error => this.log(`Watcher error: ${error}`))
+            .on('error', (error) => {
+                this.log(`Watcher error: ${error}`);
+                if (typeof self.isError == 'undefined') { fmad_ajax_indicator('', 1); self.isError = 1; /*show this only once*/ }
+            })
             .on('ready', () => {
                 this.log('Initial scan complete. Ready for changes');
                 onReady();
