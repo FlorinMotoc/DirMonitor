@@ -2,7 +2,7 @@
   "name": "dir-monitor",
   "productName": "DirMonitor",
   "description": "Dir Monitor App",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Florin Motoc",
   "copyright": "© 2016, Florin Motoc",
   "main": "background.js",

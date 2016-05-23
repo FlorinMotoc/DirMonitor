@@ -5,13 +5,14 @@ var fs = require('fs');
 
 var dialog = remote.dialog;
 
-
 export var dirMonitorMain = new function () {
     var self = this;
 
+    // don't do anything yet
     this.start = function () {
     }
 
+    // the add new tab btn click
     $(function() {
         $('.addNewTab').on('click', function() {
             var numberOfTabs = $('#upTabs li').length;
@@ -40,11 +41,13 @@ export var dirMonitorMain = new function () {
         });
     });
 
+    // method to show the Chose Directory Browse Dialog
     this.openBrowseDialog_ReturnPathOrFalse = function () {
         var dirChoser = dialog.showOpenDialog({ properties: [ 'openDirectory' ]});
         return ( dirChoser && dirChoser[0] ) ? dirChoser[0] : false ;
     }
 
+    // Click Monitor Actions
     this.Click_Monitor_Start = function () {
         // Display File Browser Dialog, wait for the user to select one directory, continue after
         var dirPath = this.openBrowseDialog_ReturnPathOrFalse();
@@ -116,15 +119,27 @@ export var fileConflicts = function() {
             this.log = dirMonitorLogInstance.writeToLogTable.bind(dirMonitorLogInstance);
 
             // conflicted new file found, put it in queue, and wait for next file change of this file
-            this.log('CONFLICTED FILE FOUND :: ' + path1 + ' :: in dir :: ' + this.watchedDirectory + ' :: ADD TO ARRAY');
+            this.log('CONFLICTED FILE FOUND :: ' + path1);
 
             // extract the real (old) name of file, before conflict (removes all in parantheses: () )
             var path1ConflictedCopyGoodString = path1.replace( this.replaceRegexString , '');
 
             this.log('rename file :: ' + this.watchedDirectory + '/' + path1 + ' to :: ' + this.watchedDirectory + '/' + path1ConflictedCopyGoodString);
             fs.rename( this.watchedDirectory + '/' + path1 , this.watchedDirectory + '/' + path1ConflictedCopyGoodString, function(err) {
-                if ( err ) return this.log('ERROR ON RENAME: ' + err);
-                this.log('file renamed successfully');
+                if ( err ) {
+                    // error
+                    this.log('ERROR ON RENAME: ' + err);
+                    var msg = '(ERROR ON RENAME)';
+                } else {
+                    // rename successfully
+                    this.log('file renamed successfully');
+                    var msg = '(renamed successfully)';
+                }
+
+                // Show Notification
+                new Notification('Conflict: ' + msg, {
+                    body: path1ConflictedCopyGoodString
+                });
             }); // end rename
 
         } // end if
