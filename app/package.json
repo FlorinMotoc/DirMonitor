@@ -2,15 +2,16 @@
   "name": "dir-monitor",
   "productName": "DirMonitor",
   "description": "Dir Monitor App",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "author": "Florin Motoc",
   "copyright": "© 2016, Florin Motoc",
   "main": "background.js",
   "dependencies": {
-    "fs-jetpack": "^0.9.0",
     "bootstrap": "^3.3.6",
     "chokidar": "^1.4.3",
-    "jquery": "^2.2.3"
+    "fs-jetpack": "^0.9.0",
+    "jquery": "^2.2.3",
+    "sweetalert": "^1.1.3"
   },
   "packageNameTemplate": "{{productName}}-v{{version}}-{{platform}}-{{arch}}",
   "osx": {

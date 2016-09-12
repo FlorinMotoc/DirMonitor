@@ -8,6 +8,9 @@ var dialog = remote.dialog;
 export var dirMonitorMain = new function () {
     var self = this;
 
+    // Vars
+    this.conflictsArray = [];
+
     // don't do anything yet
     this.start = function () {
     }
@@ -18,6 +21,30 @@ export var dirMonitorMain = new function () {
             var numberOfTabs = $('#upTabs li').length;
             var $content = $('.template .monitor').clone();
             tabs.addBSTab("monitorTab"+numberOfTabs, "Monitor #" + numberOfTabs, $content);
+        });
+    });
+
+    // Conflicts array stuffs...
+    $(function() {
+
+        // Remove
+        $('.monitors').on('click', '.formTextToSearch .removeThis', function () {
+            var $monitor = $(this).parents('.monitor:first');
+            $(this).parents('.singleConflict').remove();
+            self.createConflictsArray($monitor);
+        });
+
+        // Add
+        $('.monitors').on('click', '.formTextToSearch .ftts_add', function () {
+            var $monitor = $(this).parents('.monitor:first');
+            $monitor.find('.formTextToSearch_div_tpl > div').clone().appendTo($monitor.find('.formTextToSearch .conflictArrays'));
+        });
+
+        // OK
+        $('.monitors').on('click', '.formTextToSearch .ftts_ok', function () {
+            var $monitor = $(this).parents('.monitor:first');
+            self.createConflictsArray($monitor);
+            swal("Good job!", "Now the Monitoring looks for the strings you specified!", "success");
         });
     });
 
@@ -40,6 +67,21 @@ export var dirMonitorMain = new function () {
 
         });
     });
+
+
+    // Create conflicts array
+    this.createConflictsArray = function ($monitor) {
+        var conflictsArray = [];
+        $monitor.find('.singleConflict').each( function( index, $element ) {
+            var search = $($element).find('.textToFind').val();
+            var replace = $($element).find('.textToReplace').val();
+            if ( search.length ) { // if .textToFind have something in it
+                conflictsArray.push( { search: search,  replace: replace } );
+            }
+        });
+        // todo: Remove duplicates if any
+        $monitor.data('conflictsArray', conflictsArray);
+    }
 
     // method to show the Chose Directory Browse Dialog
     this.openBrowseDialog_ReturnPathOrFalse = function () {
@@ -115,33 +157,102 @@ export var fileConflicts = function() {
         var path1 = path.replace( this.watchedDirectory + '/', '' );
 
         // if path1 contains the word "conflicted" AND if is new, ... then ... do something ...
-        if ( action == 'add' && path1.search( this.conflictString ) != -1 ) {
-            this.log = dirMonitorLogInstance.writeToLogTable.bind(dirMonitorLogInstance);
+        //formTextToSearch
+        if ( action == 'add' ) {
 
-            // conflicted new file found, put it in queue, and wait for next file change of this file
-            this.log('CONFLICTED FILE FOUND :: ' + path1);
+            var newPath1 = false;
+            var pathToCheck;
 
-            // extract the real (old) name of file, before conflict (removes all in parantheses: () )
-            var path1ConflictedCopyGoodString = path1.replace( this.replaceRegexString , '');
+            // new style
 
-            this.log('rename file :: ' + this.watchedDirectory + '/' + path1 + ' to :: ' + this.watchedDirectory + '/' + path1ConflictedCopyGoodString);
-            fs.rename( this.watchedDirectory + '/' + path1 , this.watchedDirectory + '/' + path1ConflictedCopyGoodString, function(err) {
-                if ( err ) {
-                    // error
-                    this.log('ERROR ON RENAME: ' + err);
-                    var msg = '(ERROR ON RENAME)';
-                } else {
-                    // rename successfully
-                    this.log('file renamed successfully');
-                    var msg = '(renamed successfully)';
-                }
+            var conflictsArray = $('.monitor[data-uid="'+dirMonitorLogInstance.UID+'"]').data('conflictsArray');
 
-                // Show Notification
-                new Notification('Conflict: ' + msg, {
-                    body: path1ConflictedCopyGoodString
+            if ( typeof conflictsArray != 'undefined' && conflictsArray.length ) {
+
+                $.each( conflictsArray, function( key, value ) {
+
+                    pathToCheck = (newPath1 !== false) ? newPath1 : path1;
+
+                    var search = value.search;
+                    var replace = value.replace;
+
+                    if ( pathToCheck.search( search ) != -1 ) { // this exists in path1 (filename)
+                        self.log = dirMonitorLogInstance.writeToLogTable.bind(dirMonitorLogInstance);
+
+                        // conflicted new file found, put it in queue, and wait for next file change of this file
+                        self.log('CONFLICTED FILE FOUND :: ' + pathToCheck + ' with conflict : ' + search);
+
+                        // extract the real (old) name of file, before conflict (removes all in parantheses: () )
+                        var path1ConflictedCopyGoodString = pathToCheck.replace( search , replace);
+
+                        // The old path filename was changed
+                        newPath1 = path1ConflictedCopyGoodString;
+
+                        self.log('rename file :: ' + path1 + ' to :: ' + path1ConflictedCopyGoodString + ' :: from dir :: ' + self.watchedDirectory);
+
+                        // Rename
+                        self.renameFile(
+                            self.watchedDirectory + '/' + pathToCheck,
+                            self.watchedDirectory + '/' + path1ConflictedCopyGoodString
+                        );
+                    }
+
                 });
-            }); // end rename
 
-        } // end if
+            }
+
+            // end new style
+
+            // Now check for RDS Style
+
+            // RDS Style
+            pathToCheck = (newPath1 !== false) ? newPath1 : path1;
+
+            if ( pathToCheck.search( this.conflictString ) != -1 ) {
+                self.log = dirMonitorLogInstance.writeToLogTable.bind(dirMonitorLogInstance);
+
+                // conflicted new file found, put it in queue, and wait for next file change of this file
+                self.log('CONFLICTED FILE FOUND :: ' + pathToCheck);
+
+                // extract the real (old) name of file, before conflict (removes all in parantheses: () )
+                var path1ConflictedCopyGoodString = pathToCheck.replace( self.replaceRegexString , '');
+
+                self.log('rename file :: ' + pathToCheck + ' to :: ' + path1ConflictedCopyGoodString + ' :: from dir :: ' + self.watchedDirectory);
+
+                // Rename
+                self.renameFile(
+                    self.watchedDirectory + '/' + pathToCheck,
+                    self.watchedDirectory + '/' + path1ConflictedCopyGoodString
+                );
+
+            } // end if
+
+            // END RDS Style
+
+        } // end if action == add
+
     } // end checkIfConflict()
+
+    this.renameFile = function ( oldPathFilename, newPathFilename ) {
+
+        // important :: you need to declare this.log before)
+
+        fs.rename( oldPathFilename , newPathFilename, function(err) {
+            if ( err ) {
+                // error
+                self.log('ERROR ON RENAME: ' + err);
+                var msg = '(ERROR ON RENAME)';
+            } else {
+                // rename successfully
+                self.log('file renamed successfully');
+                var msg = '(renamed successfully)';
+            }
+
+            // Show Notification
+            new Notification('Conflict: ' + msg, {
+                body: newPathFilename
+            });
+        }); // end rename
+
+    }
 }
