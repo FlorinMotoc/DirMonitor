@@ -41,9 +41,9 @@ export var dirMonitor = function () {
             // alwaysStat: false
         });
 
-        fmad_ajax_indicator('Please wait... scanning files...');
+        AjaxIndicator.start('Please wait... scanning files...');
         this.watcherStart(function() {
-            fmad_ajax_indicator('', 1);
+            AjaxIndicator.stop()
             self.WatchDirs();
             self.WatchFiles();
             self.WatchMore();
@@ -56,7 +56,7 @@ export var dirMonitor = function () {
             // .on('error', error => this.log(`Watcher error: ${error}`))
             .on('error', (error) => {
                 this.log(`Watcher error: ${error}`);
-                if (typeof self.isError == 'undefined') { fmad_ajax_indicator('', 1); self.isError = 1; /*show this only once*/ }
+                if (typeof self.isError == 'undefined') { AjaxIndicator.stop(); self.isError = 1; /*show this only once*/ }
             })
             .on('ready', () => {
                 this.log('Initial scan complete. Ready for changes');

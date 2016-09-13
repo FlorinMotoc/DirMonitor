@@ -1,17 +1,12 @@
-
-function fmad_ajax_indicator(text, stop) {
-    if (stop) {
-        // stop indicator
-        jQuery('#resultLoading .bg').height('100%');
-        jQuery('#resultLoading').fadeOut(300);
-        jQuery('body').css('cursor', 'default');
-        // end stop indicator
-    } else {
+var AjaxIndicator = new function () {
+    this.setImgSrc = function (src) {
+        this.imgSrc = src;
+    }
+    this.start = function (text) {
         // start indicator
-        var img_src = "./helpers/ajax-loader.gif";
 
         if(jQuery('body').find('#resultLoading').attr('id') != 'resultLoading'){
-            jQuery('body').append('<div id="resultLoading" style="display:none"><div><img src="'+img_src+'"><div>'+text+'</div></div><div class="bg"></div></div>');
+            jQuery('body').append('<div id="resultLoading" style="display:none"><div><img src="'+this.imgSrc+'"><div>'+text+'</div></div><div class="bg"></div></div>');
         } else {
             jQuery('body').find('#resultLoading > div > div').html(text);
         }
@@ -56,6 +51,13 @@ function fmad_ajax_indicator(text, stop) {
         jQuery('#resultLoading .bg').height('100%');
         jQuery('#resultLoading').fadeIn(300);
         jQuery('body').css('cursor', 'wait');
-        // end start indicator
+    }
+    this.stop = function () {
+        // stop indicator
+        jQuery('#resultLoading .bg').height('100%');
+        jQuery('#resultLoading').fadeOut(300);
+        jQuery('body').css('cursor', 'default');
     }
 }
+// Set the path to the loader image (28 kb)
+AjaxIndicator.setImgSrc( './helpers/ajax-loader.gif' );
