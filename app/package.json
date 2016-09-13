@@ -5,6 +5,8 @@
   "version": "0.2.4",
   "author": "Florin Motoc",
   "copyright": "© 2016, Florin Motoc",
+  "homepage": "http://mflorin.com",
+  "license": "MIT",
   "main": "background.js",
   "dependencies": {
     "bootstrap": "^3.3.6",
